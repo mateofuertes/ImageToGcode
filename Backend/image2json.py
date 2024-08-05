@@ -71,7 +71,7 @@ class BusinessCardReader:
 
     def process_image(self, image_path):
         # Preprocess the image
-        pytesseract.pytesseract.tesseract_cmd = 'C:/Users/mateo/AppData/Local/Programs/Tesseract-OCR/tesseract.exe'
+        pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
         processed_image = self.preprocess_image(image_path)
         # Perform OCR on the pre-processed image
         extracted_text = self.perform_ocr(processed_image)
