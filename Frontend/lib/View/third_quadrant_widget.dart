@@ -37,7 +37,17 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
 
   void saveData() async {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
-
+    
+    final dataEmpty = _nameController.text.isEmpty &&
+        _addressController.text.isEmpty &&
+        _phoneController.text.isEmpty &&
+        _emailController.text.isEmpty &&
+        _faxController.text.isEmpty &&
+        _facultyController.text.isEmpty &&
+        _positionController.text.isEmpty &&
+        _companyController.text.isEmpty &&
+        _websiteController.text.isEmpty;
+        
     final imageData = {
       'name': _nameController.text,
       'address': _addressController.text,
@@ -49,9 +59,9 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
       'company': _companyController.text,
       'website': _websiteController.text,
     };
-    if (imageData.isEmpty) {
+    if (dataEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No information to save.')),
+        const SnackBar(content: Text('No information to save')),
       );
       return;
     }

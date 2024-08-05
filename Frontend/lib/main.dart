@@ -5,7 +5,7 @@ import 'package:app/View/first_quadrant_widget.dart';
 import 'package:app/View/second_quadrant_widget.dart';
 import 'package:app/View/third_quadrant_widget.dart';
 import 'package:app/View/fourth_quadrant_widget.dart';
-import 'package:app/View/app_drawer.dart';
+import 'package:app/View/app_drawer.dart';  
 
 void main() {
   runApp(const MyApp());
@@ -30,15 +30,17 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  final String help = 'This application allows you to convert images to G-code, which is a language '
-                      'used to control CNC machines. You can upload an image, process it to generate '
-                      'G-code, and preview the result. The G-code can then be used with compatible '
-                      'CNC machines to produce physical objects based on the uploaded image.\n\n'
-                      'To use this app, simply upload an image by clicking the "Upload Image" button. '
-                      'Tesseract OCR will then process the image to extract text information. '
-                      'This information will be classified in different categories for generating G-code. '
-                      'You can also edit the extracted information and save it to generate new G-code.\n\n'
-                      'The image, JSON file and the G-code can be downloaded in the Drawer menu.';
+  final String help = 'This application converts images to G-code, a language used to control CNC machines. '
+                      'Upload an image, process it to generate G-code, and preview the result. The G-code '
+                      'can then be used with compatible CNC machines to imprint text extracted from the uploaded image.\n\n'
+                      'To use this app, click the "Upload Image" button to upload an image. Tesseract OCR will '
+                      'process the image to extract text information, which will be classified into different '
+                      'categories for generating G-code. You can edit the extracted information and save it '
+                      'to generate new G-code.\n\n'
+                      'You can download the image, a JSON file with the information extracted, and G-code from '
+                      'the Drawer menu. Alternatively, you can upload a JSON file with the information to generate the G-code.\n\n'
+                      'Once the G-code is generated, preview it in the "G-code Preview" tab. To execute the G-code '
+                      'on a compatible CNC machine, click the "Run G-code" button to send the G-code for execution.';
 
   @override
   Widget build(BuildContext context) {

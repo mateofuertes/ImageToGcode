@@ -38,7 +38,7 @@ class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
             child: appProvider.imageFile == null && appProvider.webImageUrl == null
                 ? Center(
                     child: ElevatedButton(
-                      onPressed: _pickImage,
+                      onPressed: () => _pickImage(appProvider),
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 71, 104)),
                       ),
@@ -54,12 +54,10 @@ class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
     );
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(AppProvider appProvider) async {
     try {
       final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        // ignore: use_build_context_synchronously
-        final appProvider = Provider.of<AppProvider>(context, listen: false);
         appProvider.clearErrorMessage();
         
         if (kIsWeb) {
