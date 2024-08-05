@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:html' as html;
 import 'package:app/Services/full_service.dart';
 import 'package:app/Services/complement_services.dart';
+import 'package:app/Services/control_services.dart';
 import 'dart:convert';
 
 class AppProvider extends ChangeNotifier {
@@ -21,10 +22,11 @@ class AppProvider extends ChangeNotifier {
   String? _webImageUrl;
   Map _imageData = {};
   Image _gcodeImage = Image.asset('assets/output.png');
-  String _selectedStep = '1mm';
-  final List<String> _steps = ['0.01mm', '0.1mm', '1mm', '5mm', '10mm'];
+  String _selectedStep = '1';
+  final List<String> _steps = ['0.01', '0.1', '1', '5', '10'];
   final FullService _apiService = FullService(baseUrl: 'http://localhost:5000');
   final ComplementServices _complementServices = ComplementServices(baseUrl: 'http://localhost:5000');
+  final ControlServices _controlService = ControlServices(baseUrl: 'http://localhost:5000');
   String? _errorMessage;
 
   // Getters
@@ -92,7 +94,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /* -- Methods -- */
+  /* -- Processing Methods -- */
 
   // Clear error message
   void clearErrorMessage() {
@@ -251,9 +253,57 @@ class AppProvider extends ChangeNotifier {
     _webImageUrl = null;
     _imageData = {};
     _gcodeImage = Image.asset('assets/output.png');
-    _selectedStep = '1mm';
+    _selectedStep = '1';
     _hasImage = false;
     _hasGCodeImage = false;
     notifyListeners();
   }
+
+  /* -- Control Methods -- */
+  
+  // Send move command
+  Future<void> sendMoveCommand(String axis, String direction) async {
+    try {
+      final response = await _controlService.sendMoveCommand(axis, direction, selectedStep);
+      setErrorMessage(response);
+    } catch (e) {
+      setErrorMessage('Error: $e');
+    }
+    notifyListeners();
+  }
+
+  Future<void> sendSpindleCommand(String action) async {
+    try {
+      final response = await _controlService.sendSpindleCommand(action);
+      setErrorMessage(response);
+    } catch (e) {
+      setErrorMessage('Error: $e');
+    }
+    notifyListeners();
+  }
+
+  Future<void> runGCode() async {
+    if (_hasGCodeImage == false) {
+      setErrorMessage('No G-code to run');
+      return;
+    }
+    try {
+      final response = await _controlService.runGCode();
+      setErrorMessage(response);
+    } catch (e) {
+      setErrorMessage('Error: $e');
+    }
+    notifyListeners();
+  }
+
+  Future<void> terminate() async {
+    try {
+      final response = await _controlService.terminate();
+      setErrorMessage(response);
+    } catch (e) {
+      setErrorMessage('Error: $e');
+    }
+    notifyListeners();
+  }
+
 }
