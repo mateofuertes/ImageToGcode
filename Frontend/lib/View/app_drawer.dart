@@ -1,3 +1,6 @@
+/// Lateral drawer of the app that allows the user to choose between options to download the image, json file, g-code, etc.
+
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/Provider/app_provider.dart';
@@ -27,6 +30,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.upload, color: Colors.black),
             title: const Text('Upload Json File'),
             onTap: () {
+              /// Upload json file to the server and process it to get g-code
               final appProvider = Provider.of<AppProvider>(context, listen: false);
               appProvider.selectAndProcessJsonFile();
               Navigator.pop(context);
@@ -36,6 +40,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.image, color: Colors.black),
             title: const Text('Download Image'),
             onTap: () {
+              /// Download image from app provider or showing an error message
               final appProvider = Provider.of<AppProvider>(context, listen: false);
               appProvider.downloadImage();
               Navigator.pop(context);
@@ -48,6 +53,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.person, color: Colors.black),
             title: const Text('Download Information'),
             onTap: () {
+              /// Download json file from app provider or showing an error message
               final appProvider = Provider.of<AppProvider>(context, listen: false);
               appProvider.downloadJsonFile();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +66,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.file_download, color: Colors.black),
             title: const Text('Download G-Code'),
             onTap: () {
+              /// Download g-code from app provider or showing an error message
               final appProvider = Provider.of<AppProvider>(context, listen: false);
               appProvider.downloadGCodeFile();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -72,6 +79,7 @@ class AppDrawer extends StatelessWidget {
             leading: const Icon(Icons.clear, color: Colors.black),
             title: const Text('Clear All'),
             onTap: () {
+              /// Clear all data in app provider
               final appProvider = Provider.of<AppProvider>(context, listen: false);
               appProvider.clearData();
               ScaffoldMessenger.of(context).showSnackBar(
