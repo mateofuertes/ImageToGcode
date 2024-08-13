@@ -152,7 +152,7 @@ class AppProvider extends ChangeNotifier {
       setProcessing(false);
 
     } catch (e) {
-      setErrorMessage('Failed to process image: Could not connect to the server');
+      setErrorMessage('Failed to process image: $e');
       setProcessing(false);
     }
   }
