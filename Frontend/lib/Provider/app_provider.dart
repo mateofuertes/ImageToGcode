@@ -11,7 +11,7 @@ import 'package:app/Services/complement_services.dart';
 import 'package:app/Services/control_services.dart';
 import 'dart:convert';
 
-/// [App Provider] is a ChangeNotifier that manages the app's logic.
+/// [AppProvider] is a ChangeNotifier that manages the app's logic.
 /// It handles image manipulation, data conversion and instantiation of the services
 /// for communication with the backend.
 
