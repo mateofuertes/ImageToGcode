@@ -124,7 +124,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Download images
+  // Download image
   Future<void> downloadImage() async {
     if (!_hasImage) {
       setErrorMessage('No image to download');
@@ -272,6 +272,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Send command for the spindle (start, stop)
   Future<void> sendSpindleCommand(String action) async {
     try {
       final response = await _controlService.sendSpindleCommand(action);
@@ -282,6 +283,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Send command for run the g-code generated
   Future<void> runGCode() async {
     if (_hasGCodeImage == false) {
       setErrorMessage('No G-code to run');
@@ -296,6 +298,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Send comand for safety stop the spindle
   Future<void> terminate() async {
     try {
       final response = await _controlService.terminate();
