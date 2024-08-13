@@ -46,6 +46,7 @@ class ComplementServices {
     }
   }
 
+  // Manage Json download for web apps
   void _downloadJsonWeb(String content, String fileName) {
     final bytes = utf8.encode(content);
     final blob = html.Blob([Uint8List.fromList(bytes)]);
@@ -57,6 +58,7 @@ class ComplementServices {
     html.Url.revokeObjectUrl(url);
   }
 
+  // Manage Json download for mobile apps
   Future<void> _saveJsonMobile(String content, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/$fileName';
@@ -79,6 +81,7 @@ class ComplementServices {
     }
   }
 
+  // Manage web downloads for files
   void _downloadFileWeb(Uint8List bytes, String fileName) {
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
@@ -89,6 +92,7 @@ class ComplementServices {
     html.Url.revokeObjectUrl(url);
   }
 
+  // Manage mobile app downloads for files
   Future<void> _saveFileMobile(Uint8List bytes, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/$fileName';
