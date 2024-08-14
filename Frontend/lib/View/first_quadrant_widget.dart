@@ -5,7 +5,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:app/Provider/app_provider.dart';
 
+/// [FirstQuadrantWidget] is a widget that allows the user to upload an image 
+/// and displays it within the UI. It has two states:
+/// - No image uploaded: Shows a button to upload an image.
+/// - Image uploaded: Displays the selected image.
 class FirstQuadrantWidget extends StatefulWidget {
+
   const FirstQuadrantWidget({super.key});
 
   @override
@@ -13,6 +18,7 @@ class FirstQuadrantWidget extends StatefulWidget {
   _FirstQuadrantWidgetState createState() => _FirstQuadrantWidgetState();
 }
 
+/// Creates the widget's state.
 class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
   
   @override
@@ -38,7 +44,7 @@ class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
             child: appProvider.imageFile == null && appProvider.webImageUrl == null
                 ? Center(
                     child: ElevatedButton(
-                      onPressed: () => _pickImage(appProvider),
+                      onPressed: () => _pickImage(appProvider), // Calls the method to pick an image.
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 0, 71, 104)),
                       ),
@@ -54,12 +60,14 @@ class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
     );
   }
 
+  /// [_pickImage] allows the user to select an image from their device.
+  /// It then updates the app state with the selected image and triggers processing.
   Future<void> _pickImage(AppProvider appProvider) async {
     try {
       final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         appProvider.clearErrorMessage();
-        
+        // Handling the image differently based on the platform (web or mobile/desktop).
         if (kIsWeb) {
           appProvider.setWebImageUrl(pickedFile.path);
           appProvider.setImage(Image.network(appProvider.webImageUrl!));
@@ -91,5 +99,3 @@ class _FirstQuadrantWidgetState extends State<FirstQuadrantWidget> {
   }
 
 }
-
-

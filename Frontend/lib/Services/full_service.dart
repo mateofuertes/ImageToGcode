@@ -4,12 +4,17 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
+/// [FullService] handles interaction with the backend server for executing
+/// the entire functions to process an image and obtain g-code.
 class FullService {
-  
+
+  /// Base URL of the backend server.
   final String baseUrl;
+
+  /// Constructor to initialize the [baseUrl] of the server.
   FullService({required this.baseUrl});
 
-  // Process image
+  /// Process image avaiable in the frontend for converting it to a correct format to send it to the backend.
   Future<ui.Image> loadImageFromProvider(ImageProvider imageProvider) async {
     final completer = Completer<ui.Image>();
     final ImageStream stream = imageProvider.resolve(ImageConfiguration.empty);
@@ -22,7 +27,7 @@ class FullService {
     return image;
   }
 
-  // Send image to the server
+  /// Sends image to the server.
   Future<void> uploadImage(ui.Image image) async {
     final completer = Completer<Uint8List>();
 

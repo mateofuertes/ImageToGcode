@@ -1,14 +1,16 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+/// [ControlServices] manages handles interaction with the backend for controlling the cnc machine.
 class ControlServices {
-  
+
+  /// Base URL of the backend server
   final String baseUrl;
+
+  /// Constructor to initialize the [baseUrl] of the server.
   ControlServices({required this.baseUrl});
 
-  String selectedDistance = '0.1';
-  List<String> distances = ['0.01', '0.1', '1', '5', '10'];
-
+  /// Communicate with the backend to send a specific move command to the cnc machine.
   Future<String> sendMoveCommand(String axis, String direction, distance) async {
     try {
       final response = await http.post(
@@ -32,6 +34,7 @@ class ControlServices {
     }
   }
 
+  /// Communicate with the backend to send an specific spindle action to the cnc machine.
   Future<String> sendSpindleCommand(String action) async {
     final response = await http.post(
       Uri.parse('$baseUrl/control'),
@@ -46,6 +49,7 @@ class ControlServices {
     }
   }
 
+  /// Communicate with the backend to run the generated g-code in the cnc machine.
   Future<String> runGCode() async {
     final response = await http.post(
       Uri.parse('$baseUrl/runGcode'),
@@ -59,6 +63,7 @@ class ControlServices {
     }
   }
 
+  /// Communicate with the backend to send the safety stop commands to the cnc machine.
   Future<String> terminate() async {
     final response = await http.post(
       Uri.parse('$baseUrl/safety'),

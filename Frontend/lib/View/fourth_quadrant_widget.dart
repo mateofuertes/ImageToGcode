@@ -2,6 +2,9 @@ import 'package:app/Provider/app_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
+/// [FourthQuadrantWidget] is a widget that allows user to control the cnc machine.
+/// It has buttons for moving the spindle`s position in different axis (x, y, z),
+/// and with different steps/distance (0.01, 0.1, 1, 5, 10)
 class FourthQuadrantWidget extends StatefulWidget {
   const FourthQuadrantWidget({super.key});
 
@@ -9,6 +12,7 @@ class FourthQuadrantWidget extends StatefulWidget {
   _FourthQuadrantWidgetState createState() => _FourthQuadrantWidgetState();
 }
 
+/// Creates the widget state
 class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
   @override
   Widget build(BuildContext context) {
@@ -60,6 +64,7 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
     );
   }
 
+  /// Buttons for moving the spindle
   List<Widget> _buildControlPanel(AppProvider appProvider) {
     return [
       Expanded(
@@ -148,11 +153,12 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
     ];
   }
 
+  /// Buttons for sending control commands.
   List<Widget> _buildBottomButtons(AppProvider appProvider, BuildContext context) {
     return [
       ElevatedButton(
           onPressed: () {
-            appProvider.runGCode();
+            appProvider.runGCode(); // Run generated g-code if exists.
             if (appProvider.errorMessage == 'No G-code to run') {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -172,7 +178,7 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold))),
       ElevatedButton(
-          onPressed: () => appProvider.sendSpindleCommand('start'),
+          onPressed: () => appProvider.sendSpindleCommand('start'), // Send command to the needle to start spinning.
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all<Color>(
                 const Color.fromARGB(255, 0, 71, 104)),
@@ -183,7 +189,7 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold))),
       ElevatedButton(
-          onPressed: () => appProvider.sendSpindleCommand('stop'),
+          onPressed: () => appProvider.sendSpindleCommand('stop'), // Send command to the needle to stop spinning.
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all<Color>(
                 const Color.fromARGB(255, 0, 71, 104)),
@@ -194,7 +200,7 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold))),
       ElevatedButton(
-          onPressed: () => appProvider.sendSpindleCommand('set'),
+          onPressed: () => appProvider.sendSpindleCommand('set'), // Send command to cnc machine to set origin coordinates.
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all<Color>(
                 const Color.fromARGB(255, 0, 71, 104)),
@@ -205,7 +211,7 @@ class _FourthQuadrantWidgetState extends State<FourthQuadrantWidget> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold))),
       ElevatedButton(
-          onPressed: () => appProvider.terminate(),
+          onPressed: () => appProvider.terminate(), // Send command to cnc machine to safety stop the engraving process.
           style: ButtonStyle(
             backgroundColor:
                 MaterialStateProperty.all<Color>(const Color.fromARGB(255, 164, 0, 0)),

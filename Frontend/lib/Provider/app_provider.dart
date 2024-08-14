@@ -11,25 +11,51 @@ import 'package:app/Services/complement_services.dart';
 import 'package:app/Services/control_services.dart';
 import 'dart:convert';
 
+/// [AppProvider] is a ChangeNotifier that manages the app's logic.
+/// It handles image manipulation, data conversion and instantiation of the services
+/// for communication with the backend.
+
 class AppProvider extends ChangeNotifier {
   
-  // Variables
+  /// Indicates whether a process is ongoing.
   bool _processing = false;
+
+  /// Indicates whether an image has been loaded into the app.
   bool _hasImage = false;
+
+  /// Indicates whether a G-code image has been generated.
   bool _hasGCodeImage = false;
+
+  /// The image currently loaded into the app.
   Image _image = Image.asset('assets/input.png');
+
+  /// The image file, used for desktop platforms.
   File? _imageFile;
+
+  /// The URL of the image on the web, used for web platforms.
   String? _webImageUrl;
+
+  /// The image data in JSON format.
   Map _imageData = {};
+
+  /// The image generated from GCode.
   Image _gcodeImage = Image.asset('assets/output.png');
+
+  /// The selected step for moving machine axes.
   String _selectedStep = '1';
+
+  /// List of available steps for axis movement.
   final List<String> _steps = ['0.01', '0.1', '1', '5', '10'];
+
+  /// API services used for interacting with the backend.
   final FullService _apiService = FullService(baseUrl: 'http://localhost:5000');
   final ComplementServices _complementServices = ComplementServices(baseUrl: 'http://localhost:5000');
   final ControlServices _controlService = ControlServices(baseUrl: 'http://localhost:5000');
+
+  /// The current error message, if any.
   String? _errorMessage;
 
-  // Getters
+  /// ---- Getters ----
   bool get processing => _processing;
   bool get hasImage => _hasImage;
   bool get hasGCodeImage => _hasGCodeImage;
@@ -42,7 +68,7 @@ class AppProvider extends ChangeNotifier {
   Image get gcodeImage => _gcodeImage;
   String? get errorMessage => _errorMessage;
 
-  // Setters
+  /// ---- Setters (Notify listeners included) ----
   void setProcessing(bool processing) {
     _processing = processing;
     notifyListeners();
@@ -94,37 +120,45 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /* -- Processing Methods -- */
-
-  // Clear error message
+  /// ---- Methods for processing data and images. -----
+  ///
+  /// Clears the error message and notifies listeners.
   void clearErrorMessage() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  // Send image to the server
+  /// Sends the loaded image to the server for processing.
+  /// If the operation fails, an error message is set.
   Future<void> sendImage() async {
     try {
-      _processing = true;
+      setProcessing(true);
       setErrorMessage('Process completed');
-      notifyListeners();
+      
+      // Converts the image to a format that can be sent.
       ImageProvider imageProvider = _image.image;
+      
+      // Uploads the image to the server.
       final temp = await _apiService.loadImageFromProvider(imageProvider);
       await _apiService.uploadImage(temp);
+      
+      // Retrieves the resulting JSON and g-code preview from the processing.
       final data = await _complementServices.getJson();
       final gcodeImageTemp = await _complementServices.getPreviewImage();
+
+      // Update data
       setGcodeImage(Image.memory(gcodeImageTemp));
       setImageData(data);
-      _processing = false;
-      notifyListeners();
+      setProcessing(false);
+
     } catch (e) {
-      setErrorMessage('Failed to process image: Could not connect to the server');
-      _processing = false;
-      notifyListeners();
+      setErrorMessage('Failed to process image: $e');
+      setProcessing(false);
     }
   }
 
-  // Download images
+  /// Downloads the processed image from the server.
+  /// Handles desktop, mobile, and web platforms.
   Future<void> downloadImage() async {
     if (!_hasImage) {
       setErrorMessage('No image to download');
@@ -152,6 +186,7 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  /// Downloads the image from the web using HTML5 for web platforms.
   void downloadImageWeb(String url) {
     // ignore: unused_local_variable
     final anchor = html.AnchorElement(href: url)
@@ -159,7 +194,8 @@ class AppProvider extends ChangeNotifier {
       ..click();
   }
 
-  // Download JSON files
+  /// Downloads a JSON file from the server.
+  /// If there is no data, an error message is set.
   Future<void> downloadJsonFile() async {
     if (_imageData.isEmpty) {
       setErrorMessage('No data to download');
@@ -172,7 +208,8 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Download GCode files
+   /// Downloads a GCode file from the server.
+  /// If no GCode has been generated, an error message is set.
   Future<void> downloadGCodeFile() async {
     if (_imageData.isEmpty) {
       setErrorMessage('No gcode has been generated');
@@ -186,43 +223,54 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  // Convert JSON to GCode
+  /// Converts JSON data to GCode using the backend service.
+  /// Updates the generated GCode image and JSON data.
   void jsonToGcode() async {
     if (_imageData.isEmpty) {
       setErrorMessage('No data to convert');
       return;
     }
-    setProcessing(true);
-    notifyListeners();
+    
     try {
+      setProcessing(true);
       await _complementServices.jsonToGcode(dataToUint8List(imageData));
       final data = await _complementServices.getJson();
       final gcodeImageTemp = await _complementServices.getPreviewImage();
+      
       setGcodeImage(Image.memory(gcodeImageTemp));
       setImageData(data);
-
+      setProcessing(false);
+      
     } catch (e) {
       setErrorMessage('Failed to convert JSON to GCode: $e');
+      setProcessing(false);
     }
-    setProcessing(false);
-    notifyListeners();
+    
   }
 
+  /// Converts a data map to a byte list (Uint8List).
   Uint8List dataToUint8List(Map<dynamic, dynamic> map) {
     String jsonString = jsonEncode(map);
     Uint8List bytes = Uint8List.fromList(utf8.encode(jsonString));
     return bytes;
   }
 
-  // Update data (Json) in the server
+  /// Updates the JSON data on the server and retrieves the updated data.
   void updateJson(Map<String, dynamic> newData) async {
-    await _complementServices.updateJson(dataToUint8List(newData));
-    final data = await _complementServices.getJson();
-    _imageData = data;
-    notifyListeners();
+    try {
+      setProcessing(true);
+      await _complementServices.updateJson(dataToUint8List(newData));
+      final data = await _complementServices.getJson();
+      setImageData(data);
+      setProcessing(false);
+    } catch (e) {
+      setErrorMessage('Failed to update information: $e');
+      setProcessing(false);
+    }
   }
 
-  // Upload a JSON file
+  /// Uploads a JSON file from the local filesystem and processes it.
+  /// Only available on web platforms.
   Future<void> selectAndProcessJsonFile() async {
     final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
     uploadInput.accept = '.json';
@@ -243,10 +291,9 @@ class AppProvider extends ChangeNotifier {
       }
     });
     setErrorMessage('JSON file uploaded successfully');
-    notifyListeners();
   }
 
-  // Clear data
+  /// Clears all image data and resets the app to its initial state.
   void clearData() {
     _image = Image.asset('assets/input.png');
     _imageFile = null;
@@ -259,9 +306,10 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /* -- Control Methods -- */
-  
-  // Send move command
+  /// ---- Methods for controlling the cnc machine. ----
+  ///
+  /// Sends a move command to the server for a specific axis and direction.
+  /// If the operation fails, an error message is set.
   Future<void> sendMoveCommand(String axis, String direction) async {
     try {
       final response = await _controlService.sendMoveCommand(axis, direction, selectedStep);
@@ -269,9 +317,10 @@ class AppProvider extends ChangeNotifier {
     } catch (e) {
       setErrorMessage('Error: $e');
     }
-    notifyListeners();
   }
 
+  /// Sends a spindle command (start/stop) to the server.
+  /// If the operation fails, an error message is set.
   Future<void> sendSpindleCommand(String action) async {
     try {
       final response = await _controlService.sendSpindleCommand(action);
@@ -279,9 +328,10 @@ class AppProvider extends ChangeNotifier {
     } catch (e) {
       setErrorMessage('Error: $e');
     }
-    notifyListeners();
   }
 
+  /// Sends a command to run the generated GCode.
+  /// If no GCode has been generated, an error message is set.
   Future<void> runGCode() async {
     if (_hasGCodeImage == false) {
       setErrorMessage('No G-code to run');
@@ -293,9 +343,10 @@ class AppProvider extends ChangeNotifier {
     } catch (e) {
       setErrorMessage('Error: $e');
     }
-    notifyListeners();
   }
 
+  /// Sends a command to safely stop the spindle.
+  /// If the operation fails, an error message is set.
   Future<void> terminate() async {
     try {
       final response = await _controlService.terminate();
@@ -303,7 +354,6 @@ class AppProvider extends ChangeNotifier {
     } catch (e) {
       setErrorMessage('Error: $e');
     }
-    notifyListeners();
   }
 
 }

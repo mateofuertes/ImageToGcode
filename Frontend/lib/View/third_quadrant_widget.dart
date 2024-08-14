@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/Provider/app_provider.dart';
 
+/// [ThirdQuadrantWidget] is a widget that allows user to visualize and modify information extracted.
+/// It has a button for saving the data, which is important after modifications to generate new g-code.
 class ThirdQuadrantWidget extends StatefulWidget {
   const ThirdQuadrantWidget({super.key});
 
@@ -10,7 +12,10 @@ class ThirdQuadrantWidget extends StatefulWidget {
   _ThirdQuadrantWidgetState createState() => _ThirdQuadrantWidgetState();
 }
 
+/// Creates the widget`s state.
 class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
+  
+  /// Text controllers for displaying and modifying information.
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -35,9 +40,12 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
     super.dispose();
   }
 
+  /// Updates the new data to the server in a json file.
   void saveData() async {
+    /// Instance of the app provider.
     final appProvider = Provider.of<AppProvider>(context, listen: false);
-    
+
+    /// Bool variable for to check if there is no information in the text controllers.
     final dataEmpty = _nameController.text.isEmpty &&
         _addressController.text.isEmpty &&
         _phoneController.text.isEmpty &&
@@ -59,6 +67,7 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
       'company': _companyController.text,
       'website': _websiteController.text,
     };
+    
     if (dataEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No information to save')),
@@ -66,7 +75,7 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
       return;
     }
     try {
-      appProvider.updateJson(imageData);
+      appProvider.updateJson(imageData); // Update information in the server.
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -82,6 +91,8 @@ class _ThirdQuadrantWidgetState extends State<ThirdQuadrantWidget> {
 
     return Consumer<AppProvider>(
       builder: (context, appProvider, child) {
+        
+        /// Instantiation of the widget for the information display cards.
         final imageData = appProvider.imageData;
 
         _nameController.text = imageData['name'] ?? '';
@@ -214,6 +225,7 @@ class FieldData {
   });
 }
 
+/// Widget for custom information cards.
 class CustomCard extends StatelessWidget {
   final FieldData fieldData;
 

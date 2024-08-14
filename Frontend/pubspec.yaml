@@ -1,5 +1,5 @@
-name: app
-description: "A new Flutter project."
+name: Image2Gcode
+description: "Application to extract information from an ID card and engrave it using a cnc machine."
 publish_to: 'none'
 version: 0.1.0
 
