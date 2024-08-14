@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/Provider/app_provider.dart';
 
+/// [SecondQuadrantWidget] is a widget that allows the user to see a preview of
+/// the generated g-code. It has two states:
+/// No g-code generated: Shows different messages with the state of the process.
+/// G-code generated: Displays the preview image of the g-code.
 class SecondQuadrantWidget extends StatefulWidget {
   const SecondQuadrantWidget({super.key});
 
@@ -10,6 +14,7 @@ class SecondQuadrantWidget extends StatefulWidget {
   _SecondQuadrantWidgetState createState() => _SecondQuadrantWidgetState();
 }
 
+/// Creates the widget`s state.
 class _SecondQuadrantWidgetState extends State<SecondQuadrantWidget> {
 
   @override
@@ -40,8 +45,9 @@ class _SecondQuadrantWidgetState extends State<SecondQuadrantWidget> {
                     Positioned(
                       bottom: 16.0,
                       right: 16.0,
+                      /// Button to try to generate g-code.
                       child: FloatingActionButton(
-                        onPressed: () => _generateImage(appProvider),
+                        onPressed: () => _generateImage(appProvider), // Calls the function to generate g-code.
                         backgroundColor: const Color.fromARGB(255, 0, 71, 104),
                         child: const Icon(Icons.refresh, color: Colors.white),
                       ),
@@ -56,6 +62,7 @@ class _SecondQuadrantWidgetState extends State<SecondQuadrantWidget> {
     );
   }
 
+  /// Manages the different states of the widget: processing, displaying image, error messages.
   Widget _buildContent(AppProvider appProvider) {
     if (appProvider.processing) {
       return const CircularProgressIndicator();
@@ -69,6 +76,7 @@ class _SecondQuadrantWidgetState extends State<SecondQuadrantWidget> {
     }
   }
 
+  /// Calls to the process of generating g-code from an uploaded image or json file.
   void _generateImage(AppProvider appProvider) {
     if (appProvider.imageData.isEmpty && !appProvider.hasImage) {
       ScaffoldMessenger.of(context).showSnackBar(
