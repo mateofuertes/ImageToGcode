@@ -27,9 +27,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Main Screen of the app with the scafold for all the widgets.
 class HomeScreen extends StatelessWidget {
+  
+  /// Constructor for [HomeScreen].
   const HomeScreen({super.key});
 
+  /// Help message displayed when using the button on the right side of the app bar.
   final String help = 'This application converts images to G-code, a language used to control CNC machines. '
                       'Upload an image, process it to generate G-code, and preview the result. The G-code '
                       'can then be used with compatible CNC machines to imprint text extracted from the uploaded image.\n\n'
@@ -45,6 +49,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
+      /// [AppBar] is a widget located at the top of the app that displays the title,
+      /// the help button with information about the app and the button to open the appdrawer. 
       appBar: AppBar(
         title: const Text('Image to G-code'),
         backgroundColor: Colors.black,
@@ -79,12 +86,15 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+      /// Main widget of the app.
       body: const QuadrantsWidget(),
+      /// AppDrawer localized in the left.
       drawer: const AppDrawer(),
     );
   }
 }
 
+/// [QuadrantsWidget] is a widget divided into quadrants with the different functionalities of the application.
 class QuadrantsWidget extends StatelessWidget {
   const QuadrantsWidget({super.key});
 
@@ -97,10 +107,10 @@ class QuadrantsWidget extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: FirstQuadrantWidget(),
+                child: FirstQuadrantWidget(), // To upload the image.
               ),
               Expanded(
-                child: SecondQuadrantWidget(),
+                child: SecondQuadrantWidget(), // To visualize the preview of the generated g-code.
               ),
             ],
           ),
@@ -109,10 +119,10 @@ class QuadrantsWidget extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: ThirdQuadrantWidget(),
+                child: ThirdQuadrantWidget(), // To modify extracted, uploaded or typed information.
               ),
               Expanded(
-                child: FourthQuadrantWidget(),
+                child: FourthQuadrantWidget(), // To control the cnc machine.
               ),
             ],
           ),
