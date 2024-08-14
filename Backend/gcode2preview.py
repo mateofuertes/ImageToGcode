@@ -2,7 +2,32 @@ import re
 from PIL import Image, ImageDraw
 
 class GCodePreviewGenerator:
+    """
+    A class to generate a visual preview of G-code instructions by rendering them onto an image.
+    The generated preview can include mirrored versions of the original content for design purposes.
+
+    Attributes:
+    - card_width (float): The width of the card in millimeters.
+    - card_height (float): The height of the card in millimeters.
+    - scale_factor (int): The scaling factor for converting millimeter measurements to pixels.
+    - background_color (str): The background color of the image in hexadecimal color code (e.g., '#deb887').
+
+    Methods:
+    - parse_gcode: Parses G-code instructions and draws the corresponding paths on an image.
+    - mirror_image: Creates a mirrored version of the given image.
+    - generate_preview: Reads G-code from a file, draws it on an image, mirrors the image, and saves it.
+    """
+    
     def __init__(self, card_width=85, card_height=54, scale_factor=10, background_color='#deb887'):
+        """
+        Initializes the GCodePreviewGenerator with card dimensions, scale factor, and background color.
+
+        Parameters:
+        - card_width (float): The width of the card in millimeters (default: 85).
+        - card_height (float): The height of the card in millimeters (default: 54).
+        - scale_factor (int): The scaling factor for converting millimeter measurements to pixels (default: 10).
+        - background_color (str): The background color of the image (default: '#deb887').
+        """
         self.card_width = card_width
         self.card_height = card_height
         self.scale_factor = scale_factor
@@ -12,6 +37,15 @@ class GCodePreviewGenerator:
         self.img_height = int(self.card_height * self.scale_factor)
         
     def parse_gcode(self, draw, gcode, x_offset=0, y_offset=0):
+        """
+        Parses G-code instructions and draws the corresponding paths on an image.
+
+        Parameters:
+        - draw (ImageDraw.Draw): The ImageDraw object used to draw on the image.
+        - gcode (str): The G-code instructions as a string.
+        - x_offset (float): The horizontal offset for the drawing (default: 0).
+        - y_offset (float): The vertical offset for the drawing (default: 0).
+        """
         lines = gcode.strip().split('\n')
         current_position = [0, 0]
 
@@ -45,6 +79,16 @@ class GCodePreviewGenerator:
                     print(f"Error parsing coordinates: {e}")
 
     def mirror_image(self, image):
+        """
+        Creates a mirrored version of the given image by mirroring it both horizontally and vertically.
+
+        Parameters:
+        - image (Image): The original image to be mirrored.
+
+        Returns:
+        - Image: The mirrored image.
+        """
+        
         mirrored_image = Image.new('RGB', (self.img_width, self.img_height), self.background_color)
         mirrored_draw = ImageDraw.Draw(mirrored_image)
         
@@ -66,6 +110,15 @@ class GCodePreviewGenerator:
         return mirrored_image
 
     def generate_preview(self, gcode_file='temp.nc', output_image='temp_preview.png'):
+        """
+        Generates a preview image from G-code instructions. The image is created by drawing the G-code
+        paths and then generating a mirrored version of the image. The final preview is saved to a file.
+
+        Parameters:
+        - gcode_file (str): The path to the G-code file (default: 'temp.nc').
+        - output_image (str): The path where the preview image should be saved (default: 'temp_preview.png').
+        """
+        
         # Initialize the canvas with the bamboo color
         image = Image.new('RGB', (self.img_width, self.img_height), self.background_color)
         draw = ImageDraw.Draw(image)
