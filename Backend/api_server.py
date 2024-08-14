@@ -12,7 +12,7 @@ from cnc_control import move_spindle, control_spindle, safety_stop, start_execut
 app = Flask(__name__)
 CORS(app)
 
-# Python scripts
+# Python scripts for processing
 IMAGE2JSON_SCRIPT = 'image2json.py'
 JSON2GCODE_SCRIPT = 'json2gcode.py'
 GCODE2PREVIEW_SCRIPT = 'gcode2preview.py'
@@ -23,9 +23,10 @@ TEMP_JSON_FILE = 'temp.json'
 TEMP_GCODE_FILE = 'temp.nc'
 TEMP_PREVIEW_FILE = 'temp_preview.png'
 
+# Global variable for selected serial port
 port_selected = None
 
-# Initialize CNC Machine
+# Initialize CNC Machine connection
 for i in range(0, 20):
     try:
         ser = serial.Serial(f'/dev/ttyUSB{i}', 115200)
@@ -49,6 +50,12 @@ print(f'Connected to {port_selected}')
 
 @app.route('/', methods=['GET'])
 def index():
+    """
+    Provides a welcome message and information about available API endpoints.
+
+    Returns:
+    - str: Welcome message with instructions for using API endpoints.
+    """
     return (
         "Welcome to the API! Here are the endpoints you can use:\n"
         "1. POST /process - Process an image through the entire pipeline\n"
@@ -59,13 +66,22 @@ def index():
 
 @app.route('/process', methods=['POST'])
 def process_image():
+    """
+    Processes an image by converting it to JSON, generating G-code from JSON, 
+    and creating a preview image of the G-code. 
+
+    - Accepts image file upload.
+    
+    Returns:
+    - JSON response with status of processing and file completion messages.
+    """
     # Process the image
     image_file = request.files.get('image')
     if not image_file:
         return jsonify({"error": "No image file provided"}), 400
     image_file.save(TEMP_IMAGE_FILE)
     
-    # Convert the image to JSON
+    # Convert the image to JSON (extracted information)
     try:
         reader = image2json.BusinessCardReader()
         image_path = "temp_image.png"
@@ -98,6 +114,13 @@ def process_image():
 
 @app.route('/json', methods=['GET'])
 def getJson():
+    """
+    Provides the temporary JSON file generated from image processing.
+
+    Returns:
+    - JSON file: The JSON file if it exists.
+    - JSON response: Error message if file not found.
+    """
     try:
         file_path = '/home/industrie/Documents/CNCMachine/backend'
         file_name = 'temp.json'
@@ -111,6 +134,13 @@ def getJson():
 
 @app.route('/nc', methods=['GET'])
 def get_nc():
+    """
+    Provides the temporary G-code file generated from JSON.
+
+    Returns:
+    - G-code file: The G-code file if it exists.
+    - JSON response: Error message if file not found.
+    """
     try:
         file_path = '/home/industrie/Documents/CNCMachine/backend'
         file_name = 'temp.nc'
@@ -124,6 +154,13 @@ def get_nc():
 
 @app.route('/preview', methods=['GET'])
 def get_image():
+    """
+    Provides the temporary preview image of the G-code.
+
+    Returns:
+    - Image file: The preview image if it exists.
+    - JSON response: Error message if file not found.
+    """
     try:
         file_path = '/home/industrie/Documents/CNCMachine/backend'
         file_name = 'temp_preview.png'
@@ -137,6 +174,14 @@ def get_image():
 
 @app.route('/processJson', methods=['POST'])
 def process_json():
+    """
+    Processes a JSON file by generating G-code from it and creating a preview image.
+
+    - Accepts JSON file upload.
+    
+    Returns:
+    - JSON response with status of processing and file completion messages.
+    """
     json_file = request.files.get('json')
     if not json_file:
         return jsonify({"error": "No json file provided"}), 400
@@ -163,6 +208,14 @@ def process_json():
 
 @app.route('/updateJson', methods=['POST'])
 def update_json():
+    """
+    Updates the temporary JSON file with a new upload.
+
+    - Accepts JSON file upload.
+    
+    Returns:
+    - JSON response with status of the update.
+    """
     json_file = request.files.get('json')
     if not json_file:
         return jsonify({"error": "No json file provided"}), 400
@@ -171,6 +224,14 @@ def update_json():
 
 @app.route('/move', methods=['POST'])
 def move():
+    """
+    Moves the CNC machine spindle along a specified axis by a given increment in a specified direction.
+
+    - Accepts JSON body with axis, increment, and direction.
+    
+    Returns:
+    - JSON response with status of the move operation.
+    """
     data = request.json
     axis = data.get('axis')
     increment = data.get('increment')
@@ -185,6 +246,14 @@ def move():
 
 @app.route('/control', methods=['POST'])
 def control():
+    """
+    Controls the CNC machine spindle based on the provided command.
+
+    - Accepts JSON body with command (start, stop, or set).
+    
+    Returns:
+    - JSON response with status of the control command.
+    """
     data = request.json
     command = data.get('command')
     
@@ -197,6 +266,12 @@ def control():
 
 @app.route('/safety', methods=['POST'])
 def safety():
+    """
+    Raises the spindle to the maximum height for safety and stops CNC operations.
+
+    Returns:
+    - JSON response with status of the safety stop.
+    """
     try:
         safety_stop(ser)
     except Exception as e:
@@ -206,6 +281,12 @@ def safety():
 
 @app.route('/runGcode', methods=['POST'])
 def runGCode():
+    """
+    Starts the execution of the G-code file.
+
+    Returns:
+    - JSON response with status of the G-code execution.
+    """
     try:
         start_execution(TEMP_GCODE_FILE, ser)
     except Exception as e:
