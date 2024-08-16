@@ -1,146 +1,158 @@
+import re
+import json
 from PIL import Image
 import pytesseract
-import spacy
-import json
-import re
-
-# Load spaCy model for Named Entity Recognition (NER)
-nlp = spacy.load('en_core_web_sm')
+import torch
+from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast
+import pycountry
 
 class BusinessCardReader:
-    """
+     """
     A class to process business card images, extract text using OCR, and categorize 
     the extracted information such as name, phone number, email, and company.
 
     Attributes:
     - categories (dict): A dictionary of predefined categories (e.g., name, phone, email, etc.)
                          used to classify the extracted text.
-    """
-    
-    def __init__(self):
-        """
-        Initializes the BusinessCardReader with a predefined set of categories.
-        These categories are used to store extracted information from the business card.
-        """
+     """
+
+    def __init__(self, model_path, tokenizer_path):
+        '''
+        Initialize the DistilBERT model and tokenizer with the provided paths.
+        The model is used for text classification, while the tokenizer preprocesses text inputs. 
+        '''
         
-        self.categories = {
-            'name': None,
-            'phone': None,
-            'email': None,
-            'fax': None,
-            'faculty': None,
-            'position': None,
-            'company': None,
-            'website': None
-        }
+        self.model = DistilBertForSequenceClassification.from_pretrained(model_path)
+        self.tokenizer = DistilBertTokenizerFast.from_pretrained(tokenizer_path)
 
     def preprocess_image(self, image_path):
-        """
-        Preprocesses the image for better OCR accuracy by converting it to grayscale.
+        '''
+        Open and convert the image to grayscale, then binarize it to enhance text readability.
+        The binarization threshold is set at 140 to create a high-contrast image for OCR.
+        '''
 
-        Parameters:
-        - image_path (str): The file path to the business card image.
-
-        Returns:
-        - Image: The preprocessed grayscale image.
-        """
         image = Image.open(image_path)
         gray_image = image.convert("L")
-        return gray_image
+        binarized_image = gray_image.point(lambda x: 0 if x < 140 else 255, '1')
+        return binarized_image
 
     def perform_ocr(self, image):
-        """
-        Performs Optical Character Recognition (OCR) on the preprocessed image to extract text.
+        '''
+        Perform Optical Character Recognition (OCR) on the binarized image using Tesseract.
+        The extracted text is split into lines for easier processing.
+        '''
+        
+        custom_config = r'--oem 3 --psm 6'
+        extracted_text = pytesseract.image_to_string(image, config=custom_config)
+        lines = extracted_text.splitlines()
+        return lines
 
-        Parameters:
-        - image (Image): The preprocessed image.
+    def categorize_text(self, texts):
+        '''
+        Categorize the extracted text into predefined categories like phone, email, fax, and website
+        Using regular expressions. The function fills these categories when the corresponding text pattern is found.
+        '''
+        
+        categories = {
+        categories = {
+            'phone': '',
+            'email': '',
+            'website': '',
+            'fax': ''
+        }
 
-        Returns:
-        - str: The text extracted from the image using Pytesseract.
-        """
-        extracted_text = pytesseract.image_to_string(image, lang='eng')
-        return extracted_text
+        phone_pattern = re.compile(r'(\+?\d[\d -]{8,}\d)')
+        email_pattern = re.compile(r'\S+@\S+\.\S+')
+        website_pattern = re.compile(r'(www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})')
 
-    def categorize_text(self, text):
-        """
-        Categorizes the extracted text into predefined categories such as name, phone, email, and company 
-        using both regex patterns and Named Entity Recognition (NER) with spaCy.
+        for line in texts:
+            line = line.strip()
+            if email_pattern.search(line) and not categories['email']:
+                categories['email'] = line
+            elif phone_pattern.search(line) and not categories['phone']:
+                categories['phone'] = line
+            elif "fax" in line.lower() and not categories['fax']:
+                categories['fax'] = line
+            elif website_pattern.search(line) and not categories['website']:
+                categories['website'] = line
 
-        Parameters:
-        - text (str): The extracted text from the business card.
+        return {k: v for k, v in categories.items() if v}
 
-        Returns:
-        - dict: A dictionary containing categorized information (e.g., name, phone, email).
-                Categories without any extracted information will be excluded from the dictionary.
-        """   
-        # Create a copy of the categories dictionary to store categorized text
-        categories = self.categories.copy()
+    def classify_text(self, texts):
+        '''
+        Classify the remaining text that has not been categorized into different categories such as 
+        company, faculty, name, or position using the DistilBERT model.
+        '''
+        
+        inputs = self.tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
+        input_ids = inputs['input_ids'].to("cpu")
+        attention_mask = inputs['attention_mask'].to("cpu")
 
-        # Process text with spaCy's Named Entity Recognition (NER)
-        doc = nlp(text)
+        with torch.no_grad():
+            outputs = self.model(input_ids, attention_mask=attention_mask)
+        logits = outputs.logits
+        predictions = torch.argmax(logits, dim=-1)
+        return predictions.cpu().numpy()
 
-        # Extract specific entities such as PERSON (name) and ORG (company)
-        for ent in doc.ents:
-            if ent.label_ == 'PERSON' and not categories['name']:
-                categories['name'] = ent.text.strip()
-            elif ent.label_ == 'ORG' and not categories['company']:
-                categories['company'] = ent.text.strip()
+    def apply_heuristics(self, results):
+        '''
+        Apply heuristics to refine the categorized text. For example, if multiple names or addresses
+        are found, choose the most appropriate one based on length and known patterns such as street names or countries.
+        '''
+        
+        if 'name' in results and results['name']:
+            names = results['name'].split('\n')
+            if len(names) > 1:
+                results['name'] = min(names, key=lambda x: len(x.split()))
 
-        # Further categorize lines of text using regex and keyword matching
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
-        for line in lines:
-            if "@" in line and not categories['email']:
-                categories['email'] = line.strip()
-            elif any(word in line.lower() for word in ["fax", "fax:"]) and not categories['fax']:
-                categories['fax'] = line.strip()
-            elif any(word in line.lower() for word in ["phone", "tel", "telephone", "mobile", "cell"]) and not categories['phone']:
-                categories['phone'] = line.strip()
-            elif any(word in line.lower() for word in ["faculty", "department"]) and not categories['faculty']:
-                categories['faculty'] = line.strip()
-            elif any(word in line.lower() for word in ["position", "title"]) and not categories['position']:
-                categories['position'] = line.strip()
-            elif re.match(r'^www\.', line) and not categories['website']:
-                categories['website'] = line.strip()
-            elif any(word in line.lower() for word in ["website", "web"]) and not categories['website']:
-                categories['website'] = line.strip()
+        if 'address' in results and results['address']:
+            addresses = results['address'].split('\n')
+            if len(addresses) > 1:
+                address_keywords = ['Street', 'Avenue', 'Road', 'St.', 'Ave.', 'Blvd.', 'Lane']
+                country_names = [country.name for country in pycountry.countries]
+                address_keywords.extend(country_names)
+                results['address'] = max(addresses, key=lambda x: (len(x.split()), any(keyword in x for keyword in address_keywords)))
 
-        # Remove categories with None values
-        categories = {k: v for k, v in categories.items() if v}
-
-        return categories
-
+        return results
 
     def process_image(self, image_path):
-        """
-        Processes the entire workflow for extracting and categorizing text from a business card image.
-        This includes preprocessing the image, performing OCR, and categorizing the extracted information.
-
-        Parameters:
-        - image_path (str): The file path to the business card image.
-
-        Returns:
-        - dict: A dictionary containing categorized information extracted from the business card.
-        """
+        '''
+        Process the business card image by performing OCR, categorizing extracted text using regular expressions,
+        classifying uncategorized text using the AI model, and finally applying heuristics to refine the results.
+        '''
         
-        # Preprocess the image
-        pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
         processed_image = self.preprocess_image(image_path)
-        
-        # Perform OCR on the pre-processed image
         extracted_text = self.perform_ocr(processed_image)
+
+        # Step 1: Categorize text using regular expressions
+        regex_categories = self.categorize_text(extracted_text)
         
-        # Categorize the extracted text
-        categorized_data = self.categorize_text(extracted_text)
+        # Filter out categorized texts for AI model
+        remaining_texts = [text for text in extracted_text if text not in regex_categories.values()]
         
-        return categorized_data
+        # Step 2: Classify remaining texts using AI model
+        class_names = ['company', 'faculty', 'name', 'position']
+        predictions = self.classify_text(remaining_texts)
+
+        # Results
+        results = {**regex_categories}
+
+        for class_name in class_names:
+            results[class_name] = ''  # Initialize with empty values
+
+        for pred, text in zip(predictions, remaining_texts):
+            category = class_names[pred]
+            if results[category] == '':
+                results[category] = text
+        
+        # Step 3: Apply heuristics to refine results
+        results = self.apply_heuristics(results)
+        
+        return results
 
     def save_as_json(self, data, file_path):
-        """
-        Saves the categorized data as a JSON file.
-
-        Parameters:
-        - data (dict): The categorized information to be saved.
-        - file_path (str): The file path where the JSON file should be saved.
-        """
+        '''
+        Save the extracted and categorized data as a JSON file at the specified file path.
+        '''
         with open(file_path, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
+            json.dump({"extracted_text": data}, json_file, indent=4)
