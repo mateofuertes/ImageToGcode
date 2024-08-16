@@ -83,12 +83,14 @@ def process_image():
     
     # Convert the image to JSON (extracted information)
     try:
-        reader = image2json.BusinessCardReader()
-        image_path = "temp_image.png"
-        categorized_data = reader.process_image(image_path)
-        reader.save_as_json(categorized_data, "temp.json")
-    except subprocess.CalledProcessError as e:
-        return jsonify({"error": f"Error during image2json execution: {str(e)}"}), 500
+        model_path = '/path/to/your/model'
+        tokenizer_path = '/path/to/your/tokenizer'
+        reader = BusinessCardReader(model_path, tokenizer_path)
+        categorized_data = reader.process_image(TEMP_IMAGE_FILE)
+        reader.save_as_json(categorized_data, TEMP_JSON_FILE)
+        
+    except Exception as e:
+        return jsonify({"error": f"Error during image processing: {str(e)}"}), 500
     
     # Convert JSON to G-code
     try:
