@@ -156,3 +156,14 @@ class BusinessCardReader:
         '''
         with open(file_path, 'w') as json_file:
             json.dump({"extracted_text": data}, json_file, indent=4)
+
+
+'''
+Summary of Class Identification:
+
+1. Regular Expressions are used to identify phone numbers, email addresses, websites, and fax numbers.
+2. AI Model (DistilBERT) is used to classify uncategorized text into names, company names, positions, and faculty-related information.
+3. Heuristics refine ambiguous results like multiple detected names or addresses, choosing the most likely one based on context.
+
+The combination of these techniques allows the BusinessCardReader class to accurately identify and classify the various pieces of information typically found on a business card.
+'''
