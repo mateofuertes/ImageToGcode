@@ -1,3 +1,15 @@
+'''
+Summary of Class Identification:
+
+1. Regular Expressions are used to identify phone numbers, email addresses, websites, and fax numbers.
+2. AI Model (DistilBERT) is used to classify uncategorized text into names, company names, positions, and faculty-related information.
+3. Heuristics refine ambiguous results like multiple detected names or addresses, choosing the most likely one based on context.
+
+The combination of these techniques allows the BusinessCardReader class to accurately identify and classify the various pieces of information typically found on a business card.
+'''
+
+
+
 import re
 import json
 from PIL import Image
@@ -7,14 +19,14 @@ from transformers import DistilBertForSequenceClassification, DistilBertTokenize
 import pycountry
 
 class BusinessCardReader:
-     """
+    """
     A class to process business card images, extract text using OCR, and categorize 
     the extracted information such as name, phone number, email, and company.
 
     Attributes:
     - categories (dict): A dictionary of predefined categories (e.g., name, phone, email, etc.)
                          used to classify the extracted text.
-     """
+    """
 
     def __init__(self, model_path, tokenizer_path):
         '''
@@ -52,8 +64,7 @@ class BusinessCardReader:
         Categorize the extracted text into predefined categories like phone, email, fax, and website
         Using regular expressions. The function fills these categories when the corresponding text pattern is found.
         '''
-        
-        categories = {
+
         categories = {
             'phone': '',
             'email': '',
@@ -157,13 +168,3 @@ class BusinessCardReader:
         with open(file_path, 'w') as json_file:
             json.dump({"extracted_text": data}, json_file, indent=4)
 
-
-'''
-Summary of Class Identification:
-
-1. Regular Expressions are used to identify phone numbers, email addresses, websites, and fax numbers.
-2. AI Model (DistilBERT) is used to classify uncategorized text into names, company names, positions, and faculty-related information.
-3. Heuristics refine ambiguous results like multiple detected names or addresses, choosing the most likely one based on context.
-
-The combination of these techniques allows the BusinessCardReader class to accurately identify and classify the various pieces of information typically found on a business card.
-'''
