@@ -28,6 +28,7 @@ When use this app, click the "Upload Image" button to upload an image. Tesseract
    cd Backend
    pip3 install spacy
    pip3 install tesseract
+   pip3 install flask_cors
    python3 api_server.py
 
 3. **Run the frontend server:**
